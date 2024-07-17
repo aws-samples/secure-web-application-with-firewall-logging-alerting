@@ -1,12 +1,9 @@
 
-# Welcome to CDK for security automation - Waf, logging and alerting
+# Welcome to CDK for security automation - Web Application Firewall with Logging and Alerting
 
-Securing public facing web applications is critical for business. This solution includes the following components:
-•	Deploy WafAcl with a Jason configuration file. The configuration file can be customized for customer specification, such as managed rules, excluded rules, internal CIDR, block list and etc. There is no need to change the code when changing rules and configuration. This standardizes and expedites the deployment.
-•	Deploy logging with Kinesis Firehose and S3 bucket
-•	Deploy alerting when potential exploitation happens
+Securing public facing web applications is critical for business. 
 
-To manually create a virtualenv on MacOS and Linux:
+The solution includes reusable stacks that can be easily customized for solutions to secure public facing API. It includes the following components: 1) Deploy WafAcl with a Jason configuration file. The configuration file can be customized for customer specification, such as managed rules, excluded rules, block list and etc. There is no need to change the code when changing rules and configuration. This standardizes and expedites the deployment. 2) Deploy logging with Kinesis Firehose and S3 bucket. 3)Deploy alerting on unusual blocks that need human investigation. 4) A parallel stack to deploy API gateway for testing, which can be replaced by AppSync, Cloudfront, ALB.
 
 ```
 $ python3 -m venv .venv
@@ -49,4 +46,12 @@ command.
  * `cdk diff`        compare deployed stack with current state
  * `cdk docs`        open CDK documentation
 
-Enjoy!
+
+Deploy
+
+export REGION=$(aws configure get region)
+export ACCOUNT=$(aws sts get-caller-identity | jq -r .Account)
+
+cdk bootstrap aws://$ACCOUNT/$REGION -c account=$ACCOUNT -c environmentType=qa
+
+cdk deploy -c account=$ACCOUNT -c environmentType=qa --all
