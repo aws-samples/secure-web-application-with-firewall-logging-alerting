@@ -1,0 +1,58 @@
+{
+    "blockedIPs": [
+        "192.0.2.44/32",
+        "203.0.113.0/24",
+        "96.248.87.0/24"
+    ],
+    "rules": {
+        "AWSManagedRulesCommonRuleSet": {
+            "excludedRules": [
+                "SizeRestrictions_BODY",
+                "NoUserAgent_HEADER"
+            ],
+            "priority": 2,
+            "vendorName": "AWS",
+            "name": "AWSManagedRulesCommonRuleSet",
+            "metricName": "AWSManagedCommonRules"
+        },
+        "IPBlockRule": {
+            "priority": 1,
+            "metricName": "IPBlockRule"
+        },
+        "AWSManagedRulesSQLiRuleSet": {
+            "excludedRules": [],
+            "priority": 3,
+            "vendorName": "AWS",
+            "name": "AWSManagedRulesSQLiRuleSet",
+            "metricName": "AWSManagedSQLiRules"
+        },
+        "AWSManagedRulesKnownBadInputsRuleSet": {
+            "excludedRules": [],
+            "priority": 4,
+            "vendorName": "AWS",
+            "name": "AWSManagedRulesKnownBadInputsRuleSet",
+            "metricName": "AWSManagedKnownBadInputsRules"
+        },
+        "AWSManagedRulesAnonymousIpList": {
+            "excludedRules": [],
+            "priority": 5,
+            "vendorName": "AWS",
+            "name": "AWSManagedRulesAnonymousIpList",
+            "metricName": "AWSManagedAnonymousIpListRules"
+        },
+        "AWSManagedRulesAdminProtectionRuleSet": {
+            "excludedRules": [],
+            "priority": 6,
+            "vendorName": "AWS",
+            "name": "AWSManagedRulesAdminProtectionRuleSet",
+            "metricName": "AWSManagedAdminProtectionRules"
+        },
+        "AWSManagedRulesBotControlRuleSet": {
+            "excludedRules": [],
+            "priority": 7,
+            "vendorName": "AWS",
+            "name": "AWSManagedRulesBotControlRuleSet",
+            "metricName": "AWSManagedBotControlRules"
+        }
+    }
+}

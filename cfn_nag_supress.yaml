@@ -1,0 +1,5 @@
+RulesToSuppress:
+- id: W35
+  reason: suppress for log bucket
+- id: W88
+  reason: use end to end data encryption

@@ -56,6 +56,23 @@
     "@aws-cdk/aws-efs:mountTargetOrderInsensitiveLogicalId": true,
     "@aws-cdk/aws-rds:auroraClusterChangeScopeOfInstanceParameterGroupWithEachParameters": true,
     "@aws-cdk/aws-appsync:useArnForSourceApiAssociationIdentifier": true,
-    "@aws-cdk/aws-rds:preventRenderingDeprecatedCredentials": true
+    "@aws-cdk/aws-rds:preventRenderingDeprecatedCredentials": true,
+    "prefix": "cdk-api-stack",
+    "email": "zjyao@amazon.com",
+    "qa": {
+      "region": "us-east-1",
+      "lambda": {
+        "name": "cdk-api-function-qa",
+        "alias": "live",
+        "stage": "qa"
+      },
+      "tags": {
+        "App":"cdk-security",
+        "Environment": "QA",
+        "IaC": "CDK"
+      }
+    },
+    "prod": {
+    }
   }
 }

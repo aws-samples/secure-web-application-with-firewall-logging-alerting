@@ -1,16 +1,10 @@
 
-# Welcome to your CDK Python project!
+# Welcome to CDK for security automation - Waf, logging and alerting
 
-This is a blank project for CDK development with Python.
-
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
-
-This project is set up like a standard Python project.  The initialization
-process also creates a virtualenv within this project, stored under the `.venv`
-directory.  To create the virtualenv it assumes that there is a `python3`
-(or `python` for Windows) executable in your path with access to the `venv`
-package. If for any reason the automatic creation of the virtualenv fails,
-you can create the virtualenv manually.
+Securing public facing web applications is critical for business. This solution includes the following components:
+•	Deploy WafAcl with a Jason configuration file. The configuration file can be customized for customer specification, such as managed rules, excluded rules, internal CIDR, block list and etc. There is no need to change the code when changing rules and configuration. This standardizes and expedites the deployment.
+•	Deploy logging with Kinesis Firehose and S3 bucket
+•	Deploy alerting when potential exploitation happens
 
 To manually create a virtualenv on MacOS and Linux:
 

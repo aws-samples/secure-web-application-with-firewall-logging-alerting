@@ -1,0 +1,327 @@
+Resources:
+  FirehoseKmsKey50BE1E1D:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: KMS Key for encrypting Firehose data
+      EnableKeyRotation: true
+      KeyPolicy:
+        Statement:
+          - Action: kms:*
+            Effect: Allow
+            Principal:
+              AWS: arn:aws:iam::685310286787:root
+            Resource: "*"
+        Version: "2012-10-17"
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: CdkWafStack/FirehoseKmsKey/Resource
+  FirehoseKmsKeyAlias3EB590A2:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/firehoseKmsKey
+      TargetKeyId:
+        Fn::GetAtt:
+          - FirehoseKmsKey50BE1E1D
+          - Arn
+    Metadata:
+      aws:cdk:path: CdkWafStack/FirehoseKmsKey/Alias/Resource
+  WafLogsBucket2E62CA90:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: CdkWafStack/WafLogsBucket/Resource
+  WafLogsBucketPolicyC1654A35:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: WafLogsBucket2E62CA90
+      PolicyDocument:
+        Statement:
+          - Action: s3:*
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+            Effect: Deny
+            Principal: "*"
+            Resource:
+              - Fn::GetAtt:
+                  - WafLogsBucket2E62CA90
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - WafLogsBucket2E62CA90
+                        - Arn
+                    - /*
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: CdkWafStack/WafLogsBucket/Policy/Resource
+  FirehoseDeliveryRole917A8C66:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: firehose.amazonaws.com
+        Version: "2012-10-17"
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - s3:Abort*
+                  - s3:ListBucket
+                  - s3:PutObject
+                Effect: Allow
+                Resource:
+                  - Fn::GetAtt:
+                      - WafLogsBucket2E62CA90
+                      - Arn
+                  - Fn::Join:
+                      - ""
+                      - - Fn::GetAtt:
+                            - WafLogsBucket2E62CA90
+                            - Arn
+                        - /*
+              - Action:
+                  - kms:Decrypt
+                  - kms:Encrypt
+                  - kms:GenerateDataKey
+                Effect: Allow
+                Resource:
+                  Fn::GetAtt:
+                    - FirehoseKmsKey50BE1E1D
+                    - Arn
+            Version: "2012-10-17"
+          PolicyName: RootPolicy
+    Metadata:
+      aws:cdk:path: CdkWafStack/FirehoseDeliveryRole/Resource
+  WafLogDeliveryStream:
+    Type: AWS::KinesisFirehose::DeliveryStream
+    Properties:
+      DeliveryStreamName: aws-waf-logs-CdkWafStack
+      DeliveryStreamType: DirectPut
+      S3DestinationConfiguration:
+        BucketARN:
+          Fn::GetAtt:
+            - WafLogsBucket2E62CA90
+            - Arn
+        BufferingHints:
+          IntervalInSeconds: 300
+          SizeInMBs: 5
+        CompressionFormat: GZIP
+        EncryptionConfiguration:
+          KMSEncryptionConfig:
+            AWSKMSKeyARN:
+              Fn::GetAtt:
+                - FirehoseKmsKey50BE1E1D
+                - Arn
+        RoleARN:
+          Fn::GetAtt:
+            - FirehoseDeliveryRole917A8C66
+            - Arn
+    Metadata:
+      aws:cdk:path: CdkWafStack/WafLogDeliveryStream
+  MyIPSet:
+    Type: AWS::WAFv2::IPSet
+    Properties:
+      Addresses:
+        - 192.0.2.44/32
+        - 203.0.113.0/24
+        - 96.248.87.0/24
+      IPAddressVersion: IPV4
+      Name: BlockedIPs
+      Scope: REGIONAL
+    Metadata:
+      aws:cdk:path: CdkWafStack/MyIPSet
+  CdkWebACL:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      DefaultAction:
+        Allow: {}
+      Name: CdkWebACL
+      Rules:
+        - Name: AWSManagedRulesCommonRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 2
+          Statement:
+            ManagedRuleGroupStatement:
+              ExcludedRules:
+                - Name: SizeRestrictions_BODY
+                - Name: NoUserAgent_HEADER
+              Name: AWSManagedRulesCommonRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedCommonRules
+            SampledRequestsEnabled: true
+        - Action:
+            Block: {}
+          Name: IPBlockRule
+          Priority: 1
+          Statement:
+            IPSetReferenceStatement:
+              Arn:
+                Fn::GetAtt:
+                  - MyIPSet
+                  - Arn
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: IPBlockRule
+            SampledRequestsEnabled: true
+        - Name: AWSManagedRulesSQLiRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 3
+          Statement:
+            ManagedRuleGroupStatement:
+              ExcludedRules: []
+              Name: AWSManagedRulesSQLiRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedSQLiRules
+            SampledRequestsEnabled: true
+        - Name: AWSManagedRulesKnownBadInputsRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 4
+          Statement:
+            ManagedRuleGroupStatement:
+              ExcludedRules: []
+              Name: AWSManagedRulesKnownBadInputsRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedKnownBadInputsRules
+            SampledRequestsEnabled: true
+        - Name: AWSManagedRulesAnonymousIpList
+          OverrideAction:
+            None: {}
+          Priority: 5
+          Statement:
+            ManagedRuleGroupStatement:
+              ExcludedRules: []
+              Name: AWSManagedRulesAnonymousIpList
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedAnonymousIpListRules
+            SampledRequestsEnabled: true
+        - Name: AWSManagedRulesAdminProtectionRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 6
+          Statement:
+            ManagedRuleGroupStatement:
+              ExcludedRules: []
+              Name: AWSManagedRulesAdminProtectionRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedAdminProtectionRules
+            SampledRequestsEnabled: true
+        - Name: AWSManagedRulesBotControlRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 7
+          Statement:
+            ManagedRuleGroupStatement:
+              ExcludedRules: []
+              Name: AWSManagedRulesBotControlRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedBotControlRules
+            SampledRequestsEnabled: true
+      Scope: REGIONAL
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: true
+        MetricName: WebACLMetrics
+        SampledRequestsEnabled: true
+    Metadata:
+      aws:cdk:path: CdkWafStack/CdkWebACL
+  WebACLAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Properties:
+      ResourceArn:
+        Fn::Sub:
+          - arn:aws:apigateway:${Region}::/restapis/${ApiId}/stages/${StageName}
+          - Region:
+              Ref: AWS::Region
+            ApiId:
+              Fn::ImportValue: cdk-api-stack-qa:ExportsOutputRefRestAPI1CC12F26BB2826BF
+            StageName: qa
+      WebACLArn:
+        Fn::GetAtt:
+          - CdkWebACL
+          - Arn
+    Metadata:
+      aws:cdk:path: CdkWafStack/WebACLAssociation
+  WafLoggingConfiguration:
+    Type: AWS::WAFv2::LoggingConfiguration
+    Properties:
+      LogDestinationConfigs:
+        - Fn::GetAtt:
+            - WafLogDeliveryStream
+            - Arn
+      ResourceArn:
+        Fn::GetAtt:
+          - CdkWebACL
+          - Arn
+    Metadata:
+      aws:cdk:path: CdkWafStack/WafLoggingConfiguration
+  AlertStackNestedStackAlertStackNestedStackResource96D64E9B:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL:
+        Fn::Join:
+          - ""
+          - - https://s3.us-east-1.
+            - Ref: AWS::URLSuffix
+            - /cdk-hnb659fds-assets-685310286787-us-east-1/f666394b2b3e10fc9f06b67f9e382d9a76bd065de35e23c51ffdc74a65e98c4f.json
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: CdkWafStack/AlertStack.NestedStack/AlertStack.NestedStackResource
+      aws:asset:path: CdkWafStackAlertStackD195F874.nested.template.json
+      aws:asset:property: TemplateURL
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAA/0WQsW7DMAxEvyW7zKbO0tV1l6IZDHvoWCgq7bCSJUCUExiC/r2WFSDTHd8NR7KG12MNx4O8c6V+dWXoAnEIUmmxoZ+oZ4b4hatoR5ulMSQ5D7tJgk8Q3xelMWT4cEU6Z0itT1zmJEjOEHtnMEdZk9BkkYlH8nh1jLAFH2john4dgkc5i7scbzXELfjshlL2jZemPT9dw+wUyUDOZnh200R2ap0daVr8zlMSPbJbvNrLy515iwdMolvD1dmXE7xtjzn8MVHlFxtoRuiL/gNx3znAMgEAAA==
+    Metadata:
+      aws:cdk:path: CdkWafStack/CDKMetadata/Default
+Parameters:
+  BootstrapVersion:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /cdk-bootstrap/hnb659fds/version
+    Description: Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]
+Rules:
+  CheckBootstrapVersion:
+    Assertions:
+      - Assert:
+          Fn::Not:
+            - Fn::Contains:
+                - - "1"
+                  - "2"
+                  - "3"
+                  - "4"
+                  - "5"
+                - Ref: BootstrapVersion
+        AssertDescription: CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.
+
