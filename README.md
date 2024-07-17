@@ -1,5 +1,5 @@
 
-# Welcome to CDK for security automation - Web Application Firewall with Logging and Alerting
+# Welcome to Security Web Application with Firewall Logging and Alerting
 
 Securing public facing web applications is critical for business. 
 
