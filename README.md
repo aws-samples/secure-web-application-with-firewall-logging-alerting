@@ -37,6 +37,7 @@ This solution includes reusable stacks that can be customized for specific imple
     Define alerting threshold and recipient. Customize the alert stack and ckd.json in the artifact
 
 3) Create the CDK project (linux, python)
+
     mkdir cdk_waf && cd cdk_waf
     cdk init sample-app --language python
     python3 -m venv .venv
@@ -44,6 +45,7 @@ This solution includes reusable stacks that can be customized for specific imple
     pip3 install -r requirements.txt
 
 4) Add app configuration
+
     Add stack code
     Cdk_waf_stack.py
     AlertStack.py
@@ -59,22 +61,27 @@ This solution includes reusable stacks that can be customized for specific imple
     Modify app.py
 
 5) Qualify the code
-    pip3 install -r requirements-dev.txt (to add pylint and safety)
+    Add pylint and safety
+    pip3 install -r requirements-dev.txt
 
     Run pylint
+
     pylint --generate-rcfile > .pylintrc
     python3 -m pylint cdk_waf
     python3 -m pylint app.py
 
     Run dependency checks
+
     safety check -r requirements.txt
     safety check -r requirements-dev.txt
 
     Install cfn_nag
+
     sudo yum install ruby
     gem install cfn-nag
 
     Run security checks on stacks
+
     cdk synth -c account=$ACCOUNT -c environmentType=qa  CdkWafStack >> template.yaml
     cfn_nag_scan --input-path template.yaml 
 
