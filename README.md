@@ -1,53 +1,83 @@
+Secure Web Applications with WAF Logging and Monitoring
 
-# Welcome to Security Web Application with Firewall Logging and Alerting
-
+Summary
 Securing public facing web applications is critical for business. 
+This solution includes reusable stacks that can be customized for specific implementation to secure public facing web applications. It includes the following components: 
+1) WafAcl reading rule configuration from a json file. The configuration file can be customized for specific requirements, such as managed rules, excluded rules, block list and etc. The idea is to limit code change when there is a need to change rule configuration. This standardizes and expedites the deployment. 
+2) Logging with Kinesis Firehose and S3 bucket. 
+3) Alerting on unusual blocks that need human investigation. 
+4) A parallel stack to deploy API gateway for testing, which can be replaced by AppSync, CloudFront, or ALB.
 
-The solution includes reusable stacks that can be easily customized for solutions to secure public facing API. It includes the following components: 1) Deploy WafAcl with a Jason configuration file. The configuration file can be customized for customer specification, such as managed rules, excluded rules, block list and etc. There is no need to change the code when changing rules and configuration. This standardizes and expedites the deployment. 2) Deploy logging with Kinesis Firehose and S3 bucket. 3)Deploy alerting on unusual blocks that need human investigation. 4) A parallel stack to deploy API gateway for testing, which can be replaced by AppSync, Cloudfront, ALB.
+Prerequisites and limitations
+1)	Work with customer on the requirement and specification of Waf rules. This artifact provides a sample Waf stack and rule configuration file – waf-rules.json for WafAcl with default action of “allow”. That can be modified based on specific customer requirements. 
+2)	Work with customer on the requirement and specification of alerting, such as threshold and recipients. This artifact provides a sample alerting stack and configuration, which can be modified for specific requirements.
+3)	Create a CDK project and add app configuration. This artifact provides a sample CDK project that creates a Waf stack with rules and logging configurations, a nested alerting stack and a parallel testing stack. That can be reused and customized for specific requirements.
+4)	Install code qualification tools and qualify the code. This artifact provides requirement.dev.txt for the installation and passed quality checks. You may add more qualification checks here for specific requirements
+5)	Build CI/CD to deploy the stacks, or deploy with command line. This artifact provides a sample buildspec and can be deployed to multiple accounts and regions. Account and region are input from environment context.
 
-```
-$ python3 -m venv .venv
-```
+Target technology stack
+AWS WAF
+Amazon API Gateway
+AWS Lambda
+Amazon Kinesis Data Firehose
+Amazon S3
+Amazon CloudWatch
+Alarm
+Amazon SNS
+IAM
+AWS STS
+AWS KMS
 
-After the init process completes and the virtualenv is created, you can use the following
-step to activate your virtualenv.
+Epics
+1) WAF rule requirement and specification
+Define WAF rules in the format of json. Customize waf-rules.json in the artifact
 
-```
-$ source .venv/bin/activate
-```
+2) Alerting requirement and specification
+Define alerting threshold and recipient. Customize the alert stack and ckd.json in the artifact
 
-If you are a Windows platform, you would activate the virtualenv like this:
+3) Create the CDK project (linux, python)
+mkdir cdk_waf && cd cdk_waf
+cdk init sample-app --language python
+python3 -m venv .venv
+source .venv/bin/activate
+pip3 install -r requirements.txt
 
-```
-% .venv\Scripts\activate.bat
-```
+4) Add app configuration
+Add stack code
+ Cdk_waf_stack.py
+ AlertStack.py
+ LambdaApi.py
 
-Once the virtualenv is activated, you can install the required dependencies.
+Add lambda function code
+ Handler.py
 
-```
-$ pip install -r requirements.txt
-```
+Add waf-fule.json
 
-At this point you can now synthesize the CloudFormation template for this code.
+Modify cdk.json
 
-```
-$ cdk synth
-```
+Modify app.py
 
-To add additional dependencies, for example other CDK libraries, just add
-them to your `setup.py` file and rerun the `pip install -r requirements.txt`
-command.
+5) Qualify the code
+pip3 install -r requirements-dev.txt (to add pylint and safety)
 
-## Useful commands
+Run pylint
+pylint --generate-rcfile > .pylintrc
+python3 -m pylint cdk_waf
+python3 -m pylint app.py
 
- * `cdk ls`          list all stacks in the app
- * `cdk synth`       emits the synthesized CloudFormation template
- * `cdk deploy`      deploy this stack to your default AWS account/region
- * `cdk diff`        compare deployed stack with current state
- * `cdk docs`        open CDK documentation
+Run dependency checks
+safety check -r requirements.txt
+safety check -r requirements-dev.txt
 
+Install cfn_nag
+sudo yum install ruby
+gem install cfn-nag
 
-Deploy
+Run security checks on stacks
+cdk synth -c account=$ACCOUNT -c environmentType=qa  CdkWafStack >> template.yaml
+cfn_nag_scan --input-path template.yaml 
+
+6) Deploy
 
 export REGION=$(aws configure get region)
 export ACCOUNT=$(aws sts get-caller-identity | jq -r .Account)
