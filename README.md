@@ -29,8 +29,6 @@ This solution includes reusable stacks that can be customized for specific imple
 10) IAM
 11) AWS KMS
 
-![image](https://drawio.corp.amazon.com/)
-
 **Epics**
 1) WAF rule requirement and specification
     Define WAF rules in the format of json. Customize waf-rules.json in the artifact
