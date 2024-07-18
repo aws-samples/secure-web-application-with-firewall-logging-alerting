@@ -103,9 +103,9 @@ This solution includes reusable stacks that can be customized for specific imple
 6) Deploy
 
     export REGION=$(aws configure get region)
-    
+
     export ACCOUNT=$(aws sts get-caller-identity | jq -r .Account)
 
-    cdk bootstrap aws://$ACCOUNT/$REGION -c account=$ACCOUNT -c environmentType=qa
+    cdk bootstrap aws://\$ACCOUNT/\$REGION -c account=$ACCOUNT -c environmentType=qa
 
     cdk deploy -c account=$ACCOUNT -c environmentType=qa --all
