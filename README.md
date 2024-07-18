@@ -1,4 +1,4 @@
-**Secure Web Applications with WAF Logging and Monitoring**
+**Secure Web Applications with Web Application Firewal and Logging and Monitoring**
 
 **Summary**
 
@@ -39,19 +39,27 @@ This solution includes reusable stacks that can be customized for specific imple
 3) Create the CDK project (linux, python)
 
     mkdir cdk_waf && cd cdk_waf
+
     cdk init sample-app --language python
+
     python3 -m venv .venv
+
     source .venv/bin/activate
+
     pip3 install -r requirements.txt
 
 4) Add app configuration
 
     Add stack code
+
     Cdk_waf_stack.py
+
     AlertStack.py
+
     LambdaApi.py
 
     Add lambda function code
+
     Handler.py
 
     Add waf-fule.json
@@ -61,33 +69,41 @@ This solution includes reusable stacks that can be customized for specific imple
     Modify app.py
 
 5) Qualify the code
+
     Add pylint and safety
+
     pip3 install -r requirements-dev.txt
 
     Run pylint
 
     pylint --generate-rcfile > .pylintrc
+
     python3 -m pylint cdk_waf
+
     python3 -m pylint app.py
 
     Run dependency checks
 
     safety check -r requirements.txt
+
     safety check -r requirements-dev.txt
 
     Install cfn_nag
 
     sudo yum install ruby
+
     gem install cfn-nag
 
     Run security checks on stacks
 
     cdk synth -c account=$ACCOUNT -c environmentType=qa  CdkWafStack >> template.yaml
+
     cfn_nag_scan --input-path template.yaml 
 
 6) Deploy
 
     export REGION=$(aws configure get region)
+    
     export ACCOUNT=$(aws sts get-caller-identity | jq -r .Account)
 
     cdk bootstrap aws://$ACCOUNT/$REGION -c account=$ACCOUNT -c environmentType=qa
