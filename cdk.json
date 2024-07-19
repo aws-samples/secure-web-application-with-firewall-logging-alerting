@@ -58,7 +58,7 @@
     "@aws-cdk/aws-appsync:useArnForSourceApiAssociationIdentifier": true,
     "@aws-cdk/aws-rds:preventRenderingDeprecatedCredentials": true,
     "prefix": "cdk-api-stack",
-    "email": "zjyao@amazon.com",
+    "email": "",
     "qa": {
       "region": "us-east-1",
       "lambda": {
