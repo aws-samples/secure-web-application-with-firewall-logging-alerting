@@ -11,11 +11,11 @@ This solution includes reusable stacks that can be customized for specific imple
 
 **Prerequisites and limitations**
 
-1)	Work with customer on the requirement and specification of Waf rules. This artifact provides a sample Waf stack and rule configuration file – waf-rules.json for WafAcl with default action of “allow”. That can be modified based on specific customer requirements. 
-2)	Work with customer on the requirement and specification of alerting, such as threshold and recipients. This artifact provides a sample alerting stack and configuration, which can be modified for specific requirements.
+1)	This artifact provides a sample Waf stack and rule configuration file – waf-rules.json for WafAcl with default action of “allow”. That can be modified based on specific requirements. 
+2)	This artifact provides a sample alerting stack and configuration, which can be modified for specific requirements.
 3)	Create a CDK project and add app configuration. This artifact provides a sample CDK project that creates a Waf stack with rules and logging configurations, a nested alerting stack and a parallel testing stack. That can be reused and customized for specific requirements.
-4)	Install code qualification tools and qualify the code. This artifact provides requirement.dev.txt for the installation and passed quality checks. You may add more qualification checks here for specific requirements
-5)	Build CI/CD to deploy the stacks, or deploy with command line. This artifact provides a sample buildspec and can be deployed to multiple accounts and regions. Account and region are input from environment context.
+4)	Install code qualification tools and qualify the code. This artifact provides requirement.dev.txt for the installation and passed the quality checks specified in the epics section. You may add more qualification checks for specific requirements.
+5)	Build CI/CD to deploy the stacks, or deploy with command line. This artifact can be deployed to multiple accounts and regions. Account and region are input from environment context.
 
 **Target technology stack**
 1) AWS WAF
